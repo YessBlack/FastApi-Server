@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { sha256 } from "../utils/hash";
-
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState<string>("");
@@ -11,23 +9,30 @@ const Login: React.FC = () => {
     e.preventDefault();
     setMessage("");
     try {
-      const hashedPassword = await sha256(password);
       const response = await fetch("http://127.0.0.1:8000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({
-          username: username,
-          password: hashedPassword,
+          username,
+          password,
         }),
       });
+
       const data = await response.json();
-      setMessage(data.message);
+
+      if (!response.ok) {
+        setMessage(data.detail || "Error de autenticación");
+      } else {
+        setMessage(data.message);
+      }
+
     } catch (error) {
       setMessage("Error de conexión con el servidor");
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -50,7 +55,7 @@ const Login: React.FC = () => {
           <div>
             <label htmlFor="password" className="block text-gray-700 mb-2">Contraseña:</label>
             <input
-              type="password"
+              type="text"
               id="password"
               name="password"
               value={password}
